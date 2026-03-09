@@ -1,15 +1,19 @@
 const state = {
   rounds: new Map(),
+  runs: new Map(),
+  currentRunId: null,
   currentRoundKey: null,
   currentDay: 1,
   playTimer: null,
   beliefMode: "day",
   playerFilter: new Set(),
+  metricsCache: new Map(),
 };
 
 const els = {
   fileInput: document.getElementById("fileInput"),
   dirInput: document.getElementById("dirInput"),
+  runSelect: document.getElementById("runSelect"),
   roundSelect: document.getElementById("roundSelect"),
   dayRange: document.getElementById("dayRange"),
   dayLabel: document.getElementById("dayLabel"),
@@ -24,6 +28,8 @@ const els = {
   voteList: document.getElementById("voteList"),
   beliefPanel: document.getElementById("beliefPanel"),
   roundMeta: document.getElementById("roundMeta"),
+  metricsBtn: document.getElementById("metricsBtn"),
+  metricsPanel: document.getElementById("metricsPanel"),
   playerRoster: document.getElementById("playerRoster"),
 };
 
@@ -98,6 +104,9 @@ async function handleFiles(fileList, runId = "local") {
       data.__run_id = runId;
       const key = `${runId}::${data.round_id}`;
       state.rounds.set(key, data);
+      if (!state.runs.has(runId)) {
+        state.runs.set(runId, { rounds: [], metrics: [] });
+      }
     } catch (err) {
       console.warn("Failed to parse", file.name, err);
     }
@@ -105,23 +114,44 @@ async function handleFiles(fileList, runId = "local") {
   refreshRoundSelect();
 }
 
+function refreshRunSelect() {
+  const runIds = Array.from(state.runs.keys()).sort((a, b) => a.localeCompare(b));
+  els.runSelect.innerHTML = "";
+  if (!runIds.length) {
+    els.runSelect.innerHTML = "<option>未加载</option>";
+    return;
+  }
+  for (const id of runIds) {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = id;
+    els.runSelect.appendChild(opt);
+  }
+  state.currentRunId = runIds[0];
+  els.runSelect.value = state.currentRunId;
+  refreshRoundSelect();
+}
+
 function refreshRoundSelect() {
-  const roundIds = Array.from(state.rounds.keys()).sort((a, b) => a.localeCompare(b));
+  const runId = state.currentRunId;
+  const roundKeys = Array.from(state.rounds.keys())
+    .filter((key) => key.startsWith(`${runId}::`))
+    .sort((a, b) => a.localeCompare(b));
   els.roundSelect.innerHTML = "";
-  if (!roundIds.length) {
+  if (!roundKeys.length) {
     els.roundSelect.innerHTML = "<option>未加载</option>";
     return;
   }
-  for (const id of roundIds) {
+  for (const key of roundKeys) {
+    const data = state.rounds.get(key);
     const opt = document.createElement("option");
-    opt.value = id;
-    const data = state.rounds.get(id);
-    const runId = data?.__run_id || "local";
-    opt.textContent = `Run ${runId} · Round ${data?.round_id ?? "?"}`;
+    opt.value = key;
+    opt.textContent = `Round ${data?.round_id ?? "?"}`;
     els.roundSelect.appendChild(opt);
   }
-  state.currentRoundKey = roundIds[0];
+  state.currentRoundKey = roundKeys[0];
   els.roundSelect.value = state.currentRoundKey;
+  updateMetricsButton();
   onRoundChange();
 }
 
@@ -161,6 +191,11 @@ function onRoundChange() {
   renderPlayerFilters(round);
   renderBeliefPlayers(round);
   renderDay();
+}
+
+function onRunChange() {
+  state.currentRunId = els.runSelect.value;
+  refreshRoundSelect();
 }
 
 function renderRoundMeta(round) {
@@ -420,6 +455,7 @@ function pause() {
 
 els.fileInput.addEventListener("change", (e) => handleFiles(e.target.files, "local"));
 els.dirInput.addEventListener("change", (e) => handleFiles(e.target.files, "local"));
+els.runSelect.addEventListener("change", onRunChange);
 els.roundSelect.addEventListener("change", onRoundChange);
 els.dayRange.addEventListener("input", (e) => {
   state.currentDay = Number(e.target.value);
@@ -440,12 +476,40 @@ els.beliefModeLatest.addEventListener("click", () => {
   els.beliefModeDay.classList.remove("active");
   renderDay();
 });
+els.metricsBtn.addEventListener("click", () => {
+  const runId = state.currentRunId;
+  if (!runId) return;
+  showMetrics(runId);
+});
 
 async function loadManifest() {
   try {
     const resp = await fetch("./logs/index.json");
     if (!resp.ok) return;
     const data = await resp.json();
+    if (Array.isArray(data.runs)) {
+      for (const run of data.runs) {
+        const runId = run.run_id || "local";
+        state.runs.set(runId, { rounds: run.rounds || [], metrics: run.metrics || [] });
+        for (const entry of run.rounds || []) {
+          if (!entry?.path) continue;
+          try {
+            const r = await fetch(entry.path);
+            if (!r.ok) continue;
+            const roundData = await r.json();
+            if (!roundData || typeof roundData.round_id !== "number") continue;
+            roundData.__run_id = runId;
+            const key = `${runId}::${roundData.round_id}`;
+            state.rounds.set(key, roundData);
+          } catch (err) {
+            console.warn("Failed to load", entry.path, err);
+          }
+        }
+      }
+      refreshRunSelect();
+      return;
+    }
+
     const rounds = data.rounds || [];
     for (const entry of rounds) {
       if (!entry?.path) continue;
@@ -454,14 +518,19 @@ async function loadManifest() {
         if (!r.ok) continue;
         const roundData = await r.json();
         if (!roundData || typeof roundData.round_id !== "number") continue;
-        roundData.__run_id = entry.run_id || "local";
-        const key = `${roundData.__run_id}::${roundData.round_id}`;
+        const runId = entry.run_id || "local";
+        roundData.__run_id = runId;
+        const key = `${runId}::${roundData.round_id}`;
         state.rounds.set(key, roundData);
+        if (!state.runs.has(runId)) {
+          state.runs.set(runId, { rounds: [], metrics: [] });
+        }
+        state.runs.get(runId).rounds.push(entry);
       } catch (err) {
         console.warn("Failed to load", entry.path, err);
       }
     }
-    refreshRoundSelect();
+    refreshRunSelect();
   } catch (err) {
     console.warn("No manifest found", err);
   }
@@ -469,3 +538,55 @@ async function loadManifest() {
 
 loadManifest();
 renderDay();
+
+function updateMetricsButton() {
+  const run = state.runs.get(state.currentRunId || "");
+  const hasMetrics = !!(run && Array.isArray(run.metrics) && run.metrics.length > 0);
+  els.metricsBtn.disabled = !hasMetrics;
+  if (!hasMetrics) {
+    els.metricsPanel.innerHTML = "<div class=\"metric-group\">无指标文件</div>";
+  }
+}
+
+async function showMetrics(runId) {
+  const run = state.runs.get(runId);
+  if (!run || !run.metrics || !run.metrics.length) return;
+  const metricsPath = run.metrics[0];
+  if (!metricsPath) return;
+  if (state.metricsCache.has(metricsPath)) {
+    renderMetrics(state.metricsCache.get(metricsPath));
+    return;
+  }
+  try {
+    const resp = await fetch(metricsPath);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    state.metricsCache.set(metricsPath, data);
+    renderMetrics(data);
+  } catch (err) {
+    console.warn("Failed to load metrics", err);
+  }
+}
+
+function renderMetrics(metrics) {
+  if (!metrics || typeof metrics !== "object") {
+    els.metricsPanel.innerHTML = "<div class=\"metric-group\">无法解析指标</div>";
+    return;
+  }
+  const groups = [];
+  for (const [key, value] of Object.entries(metrics)) {
+    if (value && typeof value === "object") {
+      const rows = Object.entries(value)
+        .map(([k, v]) => {
+          const display = typeof v === "number" ? v.toFixed(4) : JSON.stringify(v);
+          return `<div class=\"metric-row\"><span>${k}</span><span>${display}</span></div>`;
+        })
+        .join("");
+      groups.push(`<div class=\"metric-group\"><h4>${key}</h4>${rows || "<div class=\\\"metric-row\\\">(empty)</div>"}</div>`);
+    } else {
+      const display = typeof value === "number" ? value.toFixed(4) : String(value);
+      groups.push(`<div class=\"metric-group\"><h4>${key}</h4><div class=\"metric-row\"><span>value</span><span>${display}</span></div></div>`);
+    }
+  }
+  els.metricsPanel.innerHTML = groups.join("") || "<div class=\"metric-group\">无指标数据</div>";
+}
