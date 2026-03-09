@@ -1,0 +1,259 @@
+game_pipeline:
+  meta:
+    name: "8-player werewolf round pipeline"
+    version: "1.0"
+    description: "Round-level execution flow for MAS-based 8-player Werewolf simulation"
+
+  initialization:
+    step: "Init"
+    inputs:
+      - player_belief
+      - each_werewolf_partner
+      - player_speech_role
+      - alive_player
+      - known_player_role
+      - actioned_player
+      - round_id
+    default_values:
+      player_speech_role: null
+      known_player_role: {}
+      actioned_player:
+        saved_player: null
+        poisoned_player: null
+    outputs:
+      - initialized_game_state
+
+  round_flow:
+    - step: "werewolf_night_action"
+      actor: "werewolf"
+      description: "Each werewolf updates belief during the night phase"
+      inputs:
+        - belief
+        - partner
+        - player_speech_role
+      output:
+        belief: "{belief}"
+
+    - step: "werewolf_meeting"
+      actor: "werewolf_team"
+      description: "Werewolves share beliefs and select a night kill target"
+      inputs:
+        werewolf_beliefs: '[{"PID": "{belief}"}, ...]'
+        alive_player: "{alive_player}"
+      output:
+        death_target: "{death_target}"
+
+    - step: "seer_verify_identity"
+      actor: "seer"
+      description: "Seer checks one player whose role is unknown"
+      inputs:
+        unknown_role_player: "{unknown_role_player}"
+        known_player_role: "{known_player_role}"
+      output:
+        known_player_role: "{known_player_role}"
+
+    - step: "seer_night_action"
+      actor: "seer"
+      description: "Seer updates belief after receiving the verification result"
+      inputs:
+        known_player_role: "{known_player_role}"
+      output:
+        belief: "{belief}"
+
+    - step: "witch_action"
+      actor: "witch"
+      description: "Witch decides whether to save or poison a player"
+      inputs:
+        actioned_player: "{actioned_player}"
+        death_target: "{death_target}"
+      output:
+        actioned_player: "{actioned_player}"
+
+    - step: "witch_night_action"
+      actor: "witch"
+      description: "Witch updates belief based on night actions"
+      inputs:
+        actioned_player: "{actioned_player}"
+      output:
+        belief: "{belief}"
+
+    - step: "update_alive_player_after_night"
+      function: "update_alive_player"
+      description: "Update alive player list after night resolution"
+      inputs:
+        - death_target
+        - actioned_player
+        - alive_player
+      output:
+        alive_player: "{alive_player}"
+
+    - step: "random_speech_order"
+      function: "random_speech_order"
+      description: "Randomize the order of players speaking during the day"
+      inputs:
+        - alive_player
+      output:
+        speech_order: "{speech_order}"
+
+    - step: "player_day_speech"
+      actor: "each_alive_player"
+      description: "Each alive player generates a day speech"
+      inputs:
+        - player_role
+        - belief
+        - alive_player
+        - known_player_role
+        - actioned_player
+        - player_speech_role
+        - known_partner_speech
+      output:
+        speech:
+          target: "{target}"
+          reason: "{reason}"
+
+    - step: "update_player_speech"
+      function: "Update_player_speech"
+      description: "Record speeches and update inferred speech roles"
+      inputs:
+        - speech_order
+        - player_speech
+      output:
+        player_speech: "{player_speech}"
+        player_speech_role: "{player_speech_role}"
+
+    - step: "player_day_vote"
+      actor: "each_alive_player"
+      description: "Each alive player votes based on discussion"
+      inputs:
+        - player_role
+        - belief
+        - all_player_speech
+        - known_player_role
+        - actioned_player
+        - alive_player
+      output:
+        vote_result:
+          belief: "{belief}"
+          vote_target: "{vote_target}"
+
+    - step: "update_alive_player_after_vote"
+      function: "update_alive_player"
+      description: "Update alive players after voting elimination"
+      inputs:
+        - vote_target
+        - alive_player
+      output:
+        alive_player: "{alive_player}"
+
+    - step: "clear_player_speech"
+      function: "clear_player_speech"
+      description: "Clear speech records before next round"
+      inputs:
+        - player_speech
+        - player_speech_role
+      output:
+        player_speech: null
+        player_speech_role: null
+
+    - step: "judge_ending"
+      function: "judge_ending"
+      description: "Check whether the game has ended"
+      inputs:
+        - alive_player
+        - role_distribution
+      output:
+        game_status: "{game_status}"
+        winner: "{winner}"
+
+    - step: "next_round"
+      condition: "game_status == continue"
+      action: "proceed to next round"
+
+  per_round_state:
+    fields:
+      player_belief: "trust belief distribution of each player (higher=good, lower=werewolf)"
+      werewolf_partner: "mapping of werewolf teammates"
+      player_speech_role: "role claimed or implied in day speeches"
+      player_claim_role: "current player's true role (ground truth)"
+      known_player_role: "verified roles known by the seer"
+      actioned_player:
+        saved_player: "player saved by the witch"
+        poisoned_player: "player poisoned by the witch"
+      alive_player: "list of currently alive players"
+      dead_player: "list of dead players"
+      death_target: "player selected by werewolves during the night"
+      speech_order: "random order of day speeches"
+      player_speech: "all speeches during the current day"
+      known_partner_speech: "werewolf partners' speeches"
+      vote_target: "voting target selected by a player"
+      game_status: "continue or end"
+      winner: "wolf_team, good_team, or null"
+
+  function_signatures:
+    Init:
+      input:
+        - player_belief
+        - each_werewolf_partner
+        - player_speech_role
+        - alive_player
+        - known_player_role
+        - actioned_player
+      output:
+        - initialized_game_state
+
+    update_alive_player:
+      input:
+        - alive_player
+        - death_target
+        - actioned_player
+        - vote_target
+      output:
+        - alive_player
+
+    random_speech_order:
+      input:
+        - alive_player
+      output:
+        - speech_order
+
+    Update_player_speech:
+      input:
+        - player_speech
+        - new_speech
+      output:
+        - player_speech
+        - player_speech_role
+
+    clear_player_speech:
+      input:
+        - player_speech
+        - player_speech_role
+      output:
+        - cleared_player_speech
+        - cleared_player_speech_role
+
+    judge_ending:
+      input:
+        - alive_player
+        - role_distribution
+      output:
+        - game_status
+        - winner
+
+  minimal_execution_order:
+    - "Init(player_belief, each_werewolf_partner, player_speech_role=None, ...)"
+    - "[werewolf night action] -> {belief}"
+    - "Werewolf meeting ([{PID: belief}, ...]) -> choose death target -> {death_target}"
+    - "Seer verifies player identity ({unknown_role_player}, {known_player_role}) -> {known_player_role}"
+    - "[seer night action] -> {belief}"
+    - "Witch action ({actioned_player}) -> {actioned_player}"
+    - "[witch night action] -> {belief}"
+    - "update_alive_player()"
+    - "random_speech_order()"
+    - "[player day speech]"
+    - "Update_player_speech()"
+    - "[player day vote]"
+    - "update_alive_player()"
+    - "clear_player_speech()"
+    - "judge_ending()"
+    - "next round"

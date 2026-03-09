@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Werewolf MAS Replay Lab</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__content">
+      <p class="eyebrow">Werewolf MAS Replay Lab</p>
+      <h1>狼人杀模拟回放控制台</h1>
+      <p class="subtitle">本地日志驱动 · 可筛选玩家 · 查看 belief / 投票 / 发言时间线</p>
+    </div>
+    <div class="hero__panel">
+      <div class="panel">
+        <h2>加载日志</h2>
+        <div class="panel__body">
+          <label class="file">
+            <span>选择 round_XXX_transcript.json（可多选）</span>
+            <input id="fileInput" type="file" accept=".json" multiple />
+          </label>
+          <label class="file">
+            <span>或选择 logs 目录（支持浏览器）</span>
+            <input id="dirInput" type="file" webkitdirectory directory />
+          </label>
+          <p class="hint">提示：加载后可在右侧选择 round 与 day 进行回放。</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card controls">
+      <h2>回放控制</h2>
+      <div class="control-row">
+        <label>Round</label>
+        <select id="roundSelect"></select>
+      </div>
+      <div class="control-row">
+        <label>Day</label>
+        <input id="dayRange" type="range" min="1" max="1" value="1" />
+        <span id="dayLabel">Day 1</span>
+      </div>
+      <div class="control-row">
+        <label>自动回放</label>
+        <button id="playBtn" class="btn">Play</button>
+        <button id="pauseBtn" class="btn ghost">Pause</button>
+      </div>
+      <div class="control-row">
+        <label>过滤玩家</label>
+        <div id="playerFilters" class="player-grid"></div>
+      </div>
+      <div class="control-row">
+        <label>Belief 视角</label>
+        <select id="beliefPlayer"></select>
+      </div>
+      <div class="control-row">
+        <label>Belief 展示</label>
+        <div class="toggle">
+          <button id="beliefModeDay" class="btn small active">当日结算</button>
+          <button id="beliefModeLatest" class="btn small ghost">最新可得</button>
+        </div>
+      </div>
+      <div class="control-row">
+        <label>Round 信息</label>
+        <div id="roundMeta" class="meta"></div>
+      </div>
+    </section>
+
+    <section class="card timeline">
+      <h2>事件时间线</h2>
+      <div id="nightEvents" class="event-block"></div>
+      <div class="event-block">
+        <h3>发言</h3>
+        <div id="speechList" class="list"></div>
+      </div>
+      <div class="event-block">
+        <h3>投票</h3>
+        <div id="voteList" class="list"></div>
+      </div>
+    </section>
+
+    <section class="card belief">
+      <h2>Belief 视图</h2>
+      <div id="beliefPanel" class="belief-panel"></div>
+    </section>
+
+    <section class="card roster">
+      <h2>玩家列表</h2>
+      <div id="playerRoster" class="list"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>本页面仅解析本地 logs 输出，不直接调用模型 API。</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

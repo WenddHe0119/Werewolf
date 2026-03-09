@@ -1,0 +1,267 @@
+prompts:
+  meta:
+    game: "8-player werewolf"
+    roles:
+      werewolf: 3
+      seer: 1
+      witch: 1
+      villager: 3
+    stages:
+      - night_action
+      - day_speech
+      - day_vote
+    output_rule:
+      - "Return JSON only"
+      - "Do not include explanations outside JSON"
+
+  placeholders:
+    partner: "list of werewolf teammates"
+    belief: "current trust belief over players (higher=good, lower=werewolf)"
+    player_speech_role: "available speech roles for current player"
+    player_claim_role: "current player's true role"
+    alive_player: "list of alive players"
+    all_player_speech: "speech from all players during the day"
+    known_partner_speech: "speech from werewolf partners"
+    known_player_role: "players already verified by seer"
+    actioned_player: "players saved or poisoned by witch"
+    werewolf_speech_role: "available disguised roles for werewolf (base or fixed)"
+    seer_speech_role: "available disguised roles for seer (base or fixed)"
+    witch_speech_role: "available disguised roles for witch (base or fixed)"
+    target_role: "selected disguise role for day speech"
+    vote_target: "voting target"
+
+  werewolf:
+
+    night_action:
+      prompt: |
+        In an 8-player Werewolf game, you are a werewolf.
+        Your teammates are {partner}.
+        Your current trust belief is {belief}.
+        Higher belief means the player is more likely good; lower means more likely werewolf.
+        Players have indicated or implied roles during speeches: {player_claim_role}.
+
+        Update your belief based on the observed role claims and discussions.
+        You must update at least one probability value.
+
+        Return JSON only. No code fences.
+        Keys: belief (object mapping P* to probabilities).
+
+    day_speech:
+
+      base:
+        prompt: |
+          In an 8-player Werewolf game, you are a werewolf.
+          Your teammates are {partner}.
+          Your current trust belief is {belief}.
+          Higher belief means the player is more likely good; lower means more likely werewolf.
+
+          Select a role to disguise as from {player_speech_role}. This is your target role: {target_role}.
+          From the alive players {alive_player}, select one suspicion target.
+
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief} and {all_player_speech} to provide a reasoning consistent with your disguised role {target_role} and your suspicion target.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+      fixed:
+        prompt: |
+          In an 8-player Werewolf game, you are a werewolf.
+          Your teammates are {partner}.
+          Their speeches are {known_partner_speech}.
+          Your current trust belief is {belief}.
+          Higher belief means the player is more likely good; lower means more likely werewolf.
+          Your disguised role options are {player_speech_role}. Your target role is {target_role}.
+
+          From the alive players {alive_player}, choose a suspicion target.
+
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief} and {all_player_speech} to provide a reasoning consistent with your disguised role {target_role} and your suspicion target.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+    day_vote:
+      prompt: |
+        In an 8-player Werewolf game, you are a werewolf.
+        Your teammates are {partner}.
+        All player speeches are {all_player_speech}.
+        Your current trust belief is {belief}.
+        Higher belief means the player is more likely good; lower means more likely werewolf.
+
+        Update your belief according to the discussions.
+
+        Return JSON only. No code fences.
+        Keys: belief (object mapping P* to probabilities), vote_target (string like P3).
+
+  seer:
+
+    night_action:
+      prompt: |
+        In an 8-player Werewolf game, you are the seer.
+        The players you have already verified are {known_player_role}.
+        Your current trust belief is {belief}.
+
+        Now, update your belief about other players based on this information.
+        Higher belief means the player is more likely good; lower means more likely werewolf.
+
+        Return JSON only. No code fences.
+        Keys: belief (object mapping P* to probabilities).
+
+    day_speech:
+
+      base:
+        prompt: |
+          In an 8-player Werewolf game, you are the seer.
+          Known verified player roles: {known_player_role}.
+          Your current trust belief is {belief}.
+          Higher belief means the player is more likely good; lower means more likely werewolf.
+
+          Select a role to disguise as from {player_speech_role}. This is your target role: {target_role}.
+          From the alive players {alive_player}, choose a suspicion target.
+
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief} and {all_player_speech} to Provide reasoning using your verified information.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+      fixed:
+        prompt: |
+          In an 8-player Werewolf game, you are the seer.
+          Known verified player roles: {known_player_role}.
+          Your current trust belief is {belief}.
+          Higher belief means the player is more likely good; lower means more likely werewolf.
+          Your disguised role options are {player_speech_role}. Your target role is {target_role}.
+
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief} and {all_player_speech} to Provide reasoning using your verified information.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+    day_vote:
+      prompt: |
+        In an 8-player Werewolf game, you are the seer.
+        Known verified player roles: {known_player_role}.
+        All player speeches are {all_player_speech}.
+        Your current trust belief is {belief}.
+        Higher belief means the player is more likely good; lower means more likely werewolf.
+
+        Update your belief based on both verified information and public speeches.
+
+        Return JSON only. No code fences.
+        Keys: belief (object mapping P* to probabilities), vote_target (string like P3).
+
+  witch:
+
+    night_action:
+      prompt: |
+        In an 8-player Werewolf game, you are the witch.
+        The players you saved or poisoned are {actioned_player}.
+        Alive players are {alive_player}.
+        Your current trust belief is {belief}. Higher belief means the player is more likely good; lower means more likely werewolf.
+
+        Update your belief about other players based on these night actions.
+        You must update at least one probability value.
+
+        Return JSON only. No code fences.
+        Keys: belief (object mapping P* to probabilities).
+
+    day_speech:
+
+      base:
+        prompt: |
+          In an 8-player Werewolf game, you are the witch.
+          Players affected by your actions are {actioned_player}.
+          Your current trust belief is {belief}. Higher belief means the player is more likely good; lower means more likely werewolf.
+
+          Select a disguise role from {player_speech_role}. This is your target role: {target_role}.
+          From the alive players {alive_player}, choose a suspicion target.
+
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief}, {all_player_speech} and {actioned_player} to Provide reasoning consistent with the action history and the chosen target.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+      fixed:
+        prompt: |
+          In an 8-player Werewolf game, you are the witch.
+          Players affected by your actions are {actioned_player}.
+          Your current trust belief is {belief}. Higher belief means the player is more likely good; lower means more likely werewolf.
+          Your disguised role options are {player_speech_role}. Your target role is {target_role}.
+
+          From the alive players {alive_player}, choose a suspicion target.
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief}, {all_player_speech} and {actioned_player} to Provide reasoning using the action history.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+    day_vote:
+      prompt: |
+        In an 8-player Werewolf game, you are the witch.
+        Players affected by your actions are {actioned_player}.
+        All player speeches are {all_player_speech}.
+        Your current trust belief is {belief}. Higher belief means the player is more likely good; lower means more likely werewolf.
+
+        Update your belief based on both night actions and public speeches.
+
+        Return JSON only. No code fences.
+        Keys: belief (object mapping P* to probabilities), vote_target (string like P3).
+
+  villager:
+
+    day_speech:
+
+      base:
+        prompt: |
+          In an 8-player Werewolf game, you are a villager.
+          Your current trust belief is {belief}. Higher belief means the player is more likely good; lower means more likely werewolf.
+
+          From the alive players {alive_player}, choose a suspicion target.
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief} and {all_player_speech} to Provide reasoning based on public discussion.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+      fixed:
+        prompt: |
+          In an 8-player Werewolf game, you are a villager.
+          Your current trust belief is {belief}. Higher belief means the player is more likely good; lower means more likely werewolf.
+
+          From the alive players {alive_player}, choose a suspicion target.
+          All player speeches are {all_player_speech}.
+          Do not use silence from players who have not spoken yet as evidence.
+          Do not assume future speeches.          
+          Your reason must use only {belief} and {all_player_speech} to Provide reasoning based on public discussion.
+
+          Return JSON only. No code fences.
+          Keys: target (string like P3), reason (string).
+
+    day_vote:
+      prompt: |
+        In an 8-player Werewolf game, you are a villager.
+        All player speeches are {all_player_speech}.
+        Your current trust belief is {belief}. Higher belief means the player is more likely good; lower means more likely werewolf.
+
+        Update your belief based on public speeches.
+
+        Return JSON only. No code fences.
+        Keys: belief (object mapping P* to probabilities), vote_target (string like P3).

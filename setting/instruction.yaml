@@ -1,0 +1,659 @@
+game:
+  name: "8-player Werewolf"
+  version: "1.2"
+  description: >
+    A base rule specification for an 8-player Werewolf game designed for
+    Multi-Agent Systems (MAS) or LLM-based simulation environments.
+  players: 8
+
+roles:
+  configuration:
+    werewolf: 3
+    seer: 1
+    witch: 1
+    villager: 3
+  alignment:
+    werewolf: "wolf_team"
+    seer: "good_team"
+    witch: "good_team"
+    villager: "good_team"
+
+win_conditions:
+  good_team:
+    condition: "all werewolves eliminated"
+  wolf_team:
+    condition: "number_of_werewolves >= number_of_good_players"
+
+game_flow:
+  loop: "Night -> Day -> repeat until win condition"
+  phases:
+    night:
+      order:
+        - werewolf_action
+        - seer_action
+        - witch_action
+        - resolve_night_deaths
+    day:
+      order:
+        - announce_deaths
+        - discussion
+        - voting
+        - resolve_day_deaths
+        - check_win_condition
+
+roles_abilities:
+  werewolf:
+    abilities:
+      - "know identities of other werewolves"
+      - "collectively choose one player to kill each night"
+      - "participate in discussion and voting"
+    objectives:
+      - "hide identity"
+      - "eliminate good players"
+  seer:
+    abilities:
+      - "each night check one player"
+      - "receive result: werewolf or good"
+  witch:
+    resources:
+      antidote: 1
+      poison: 1
+    abilities:
+      - "knows who was attacked by werewolves each night"
+      - "can use antidote to save the attacked player"
+      - "can use poison to kill one player"
+    restrictions:
+      - "each potion can only be used once"
+      - "cannot self-save (base rule)"
+  villager:
+    abilities:
+      - "no special ability"
+    objective:
+      - "identify and eliminate werewolves through reasoning"
+
+player_perspectives:
+  werewolf:
+    knows:
+      - "identities of all werewolves"
+    unknown:
+      - "seer identity"
+      - "witch identity"
+      - "villager identities"
+  seer:
+    knows:
+      - "own role"
+    obtains_each_night:
+      - "alignment of one checked player"
+  witch:
+    knows:
+      - "own role"
+      - "werewolf kill target each night"
+  villager:
+    knows:
+      - "own role"
+    unknown:
+      - "all other player roles"
+
+player_reasoning:
+  goal: "identify werewolves"
+  information_sources:
+    - "discussion statements"
+    - "voting patterns"
+    - "night deaths"
+    - "claims or suspicions expressed during discussion"
+
+agent_configuration:
+  overview: >
+    Each player is implemented as an agent with a fixed role, a public-memory
+    reader, a private-memory store, a belief updater, and a policy module for
+    speech, voting, and night actions.
+  structure:
+    fields:
+      - id
+      - name
+      - role
+      - team
+      - alive
+      - public_memory
+      - private_memory
+      - belief
+      - action_history
+      - config
+  required_modules:
+    - role_prompt
+    - observation_parser
+    - belief_updater
+    - speech_policy
+    - vote_policy
+    - night_policy
+    - memory_writer
+  per_agent_config:
+    llm_backend:
+      description: "model or backend used by the agent"
+      examples:
+        - "gpt"
+        - "local_vllm"
+        - "rule_based"
+    temperature:
+      description: "sampling temperature for generation"
+      type: "float"
+    max_tokens:
+      description: "maximum generation length"
+      type: "integer"
+    top_p:
+      description: "sampling nucleus parameter"
+      type: "float"
+    reasoning_style:
+      description: "prompt-level reasoning mode"
+      examples:
+        - "concise"
+        - "balanced"
+        - "aggressive"
+        - "cautious"
+    strategy_profile:
+      description: "high-level play style"
+      examples:
+        werewolf:
+          - "hidden"
+          - "deceptive"
+          - "aggressive_push"
+        seer:
+          - "low_profile"
+          - "soft_claim"
+          - "strong_push"
+        witch:
+          - "conservative"
+          - "protective"
+          - "tempo_control"
+        villager:
+          - "consensus_following"
+          - "independent_reasoning"
+          - "pressure_testing"
+    memory_limits:
+      description: "context truncation or retrieval settings"
+      fields:
+        max_public_rounds: "integer"
+        max_private_entries: "integer"
+    deterministic_action:
+      description: "whether to force deterministic action selection"
+      type: "boolean"
+  private_memory_examples:
+    werewolf:
+      - teammates
+      - wolf_night_discussions
+      - hidden_strategy_notes
+    seer:
+      - checked_results
+      - confidence_scores
+    witch:
+      - antidote_remaining
+      - poison_remaining
+      - observed_kill_targets
+    villager:
+      - self_notes
+  belief:
+    description: "probability estimate that each other player is a werewolf"
+    example:
+      player1: 0.20
+      player2: 0.40
+      player3: 0.10
+  interfaces:
+    observe:
+      input:
+        - public_memory
+        - private_memory
+      output:
+        - parsed_observation
+    update_belief:
+      input:
+        - parsed_observation
+        - previous_belief
+      output:
+        - new_belief
+    speak:
+      input:
+        - public_memory
+        - private_memory
+        - belief
+      output:
+        - speech_text
+    vote:
+      input:
+        - public_memory
+        - private_memory
+        - belief
+      output:
+        - target_player_id
+    night_action:
+      input:
+        - public_memory
+        - private_memory
+        - belief
+      output:
+        - action_object
+
+night_actions:
+  order:
+    - werewolves
+    - seer
+    - witch
+  werewolves:
+    action: "collectively select kill_target"
+  seer:
+    action: "select check_target"
+    result: "werewolf or good"
+  witch:
+    info_received: "werewolf kill target"
+    options:
+      - use_antidote
+      - use_poison
+
+discussion_rules:
+  speaking_order: "ascending player id among alive players"
+  speaking_limit: "each player speaks once per day phase"
+  allowed_information:
+    - "public_memory"
+    - "private_memory"
+  forbidden_information:
+    - "future speeches"
+    - "future votes"
+    - "future game events"
+
+no_future_information_rule:
+  description: >
+    A player may only use information that has already been revealed.
+    Future statements or actions of players who have not yet spoken
+    in the current discussion round cannot be referenced.
+
+voting_rules:
+  procedure:
+    - "all alive players cast one vote"
+    - "player with highest votes is eliminated"
+  tie:
+    - "re-vote among tied players"
+    - "if tie persists, no elimination"
+
+death_resolution:
+  causes:
+    - "werewolf attack"
+    - "witch poison"
+    - "daytime voting elimination"
+  effect:
+    - "dead players are removed from game"
+    - "dead players cannot speak or vote"
+
+no_hard_role_reveal_rule:
+  description: >
+    Players are not allowed to explicitly reveal their true role.
+    Direct statements such as 'I am the seer' or 'I am the witch'
+    are prohibited.
+  allowed_behavior:
+    - "soft claims"
+    - "indirect hints"
+    - "reasoning-based statements"
+
+wolf_communication_rule:
+  communication_scope:
+    participants: "werewolves only"
+  allowed_topics:
+    - "kill target selection"
+    - "discussion strategy"
+    - "suspected special roles"
+  visibility:
+    - "not visible to non-werewolf players"
+
+belief_update_rule:
+  description: >
+    Each agent maintains and updates a belief distribution over
+    which players are werewolves.
+  initial_state:
+    method: "uniform distribution over unknown players"
+  update_sources:
+    - "discussion content"
+    - "voting behavior"
+    - "night deaths"
+    - "role claims"
+  example_update:
+    - condition: "multiple players accuse a target"
+      effect: "increase suspicion of that target"
+
+public_memory:
+  description: >
+    Shared memory storing all publicly known historical information.
+  contents:
+    - "round information"
+    - "announced deaths"
+    - "discussion history"
+    - "voting history"
+    - "public statements"
+  exclusions:
+    - "werewolf private discussion"
+    - "seer check results"
+    - "witch potion status"
+    - "player belief states"
+    - "future information"
+
+memory_structure:
+  public_memory:
+    fields:
+      - day
+      - phase
+      - alive_players
+      - dead_players
+      - announcements
+      - speech_history
+      - vote_history
+  private_memory:
+    examples:
+      werewolf:
+        - teammates
+        - wolf_night_discussions
+      seer:
+        - checked_results
+      witch:
+        - antidote_remaining
+        - poison_remaining
+        - observed_kill_targets
+      villager:
+        - self_notes
+
+fairness_test:
+  name: "werewolf_window"
+  purpose: >
+    Reduce positional bias by rotating role assignment across repeated games
+    under a global seed and a fixed player sequence.
+  enabled_when: "fairness_test == 'werewolf_window'"
+  global_seed:
+    description: >
+      Single user-provided seed used to generate the base player order for
+      fairness rotation and derive per-round runtime randomness.
+    type: "integer"
+  base_player_sequence:
+    description: >
+      A player index sequence generated once from the global seed. Roles are
+      assigned by sliding a role window across this sequence across rounds.
+    notation: "idx1, idx2, idx3, idx4, idx5, idx6, idx7, idx8"
+  role_window_rule:
+    description: >
+      In each round, roles are assigned by a cyclic shift over the player
+      sequence so that different player indices experience different roles
+      across rounds.
+    round_examples:
+      round_1:
+        werewolves: ["idx1", "idx2", "idx3"]
+        seer: "idx4"
+        witch: "idx5"
+        villagers: ["idx6", "idx7", "idx8"]
+      round_2:
+        werewolves: ["idx2", "idx3", "idx4"]
+        seer: "idx5"
+        witch: "idx6"
+        villagers: ["idx7", "idx8", "idx1"]
+      round_3:
+        werewolves: ["idx3", "idx4", "idx5"]
+        seer: "idx6"
+        witch: "idx7"
+        villagers: ["idx8", "idx1", "idx2"]
+  cyclic_assignment:
+    description: "all assignments use modulo-num_players wraparound"
+  evaluation_metrics:
+    - "win rate by seat index"
+    - "win rate by role"
+    - "average survival rounds by seat index"
+    - "seer check value by seat index"
+    - "witch save usage rate by seat index"
+    - "vote consistency by seat index"
+    - "speech length and influence by seat index"
+  acceptance_criteria:
+    examples:
+      - "seat-index win rates should not show systematic drift"
+      - "role-conditioned performance should remain stable across shifts"
+      - "no single seat should dominate due to speaking order or role placement"
+
+seed_semantics:
+  global_seed:
+    purpose: >
+      Generate the base player order for fairness rotation and derive per-round
+      runtime randomness.
+    scope: "entire experiment"
+    affects:
+      - "initial player index sequence"
+      - "werewolf_window cyclic role assignment base order"
+      - "per-round derived runtime seeds"
+    user_exposed: true
+  runtime_seed:
+    purpose: "system-generated randomness for each round"
+    scope: "single round"
+    source: "automatically derived by the system"
+    user_exposed: false
+    logged: true
+
+runtime_randomness:
+  policy: "system-generated"
+  description: >
+    No user-facing --seed is required. For each round, the system automatically
+    derives or samples a runtime seed based on the global experiment context.
+  reproducibility:
+    enabled: true
+    requirement: "runtime seeds should be recorded in logs"
+
+command_arguments:
+  description: "Suggested CLI parameters for running the Werewolf simulation"
+  required:
+    - name: "--num_players"
+      type: "integer"
+      default: 8
+      constraints:
+        - "must be > 0"
+      description: "number of players in the game"
+
+    - name: "--role_config"
+      type: "string"
+      default: "werewolf:3,seer:1,witch:1,villager:3"
+      description: "role composition"
+
+    - name: "--global_seed"
+      type: "integer"
+      description: >
+        Global seed used to generate the base player sequence for fairness-test
+        role rotation such as werewolf_window, and to derive system-level
+        runtime seeds for each round.
+
+  optional:
+    - name: "--num_rounds"
+      type: "integer"
+      default: 8
+      constraints:
+        - "must be > 0"
+        - "must satisfy num_rounds % num_players == 0 when fairness_test=werewolf_window"
+      description: >
+        Number of games to run. Under fairness_test=werewolf_window, it must be
+        a positive multiple of num_players so that cyclic role assignment is balanced.
+
+    - name: "--fairness_test"
+      type: "string"
+      default: "none"
+      allowed_values:
+        - "none"
+        - "werewolf_window"
+      description: "fairness evaluation mode"
+
+    - name: "--window_shift_per_round"
+      type: "integer"
+      default: 1
+      description: "cyclic shift size for role window each round"
+
+    - name: "--speaker_order"
+      type: "string"
+      default: "ascending_id"
+      allowed_values:
+        - "ascending_id"
+        - "fixed_sequence"
+      description: "discussion order rule"
+
+    - name: "--max_days"
+      type: "integer"
+      default: 20
+      description: "maximum day count before force stop"
+
+    - name: "--seer_model"
+      type: "string"
+      description: "backend or model name for seer agent"
+
+    - name: "--witch_model"
+      type: "string"
+      description: "backend or model name for witch agent"
+
+    - name: "--werewolf_model"
+      type: "string"
+      description: "backend or model name for werewolf agents"
+
+    - name: "--villager_model"
+      type: "string"
+      description: "backend or model name for villager agents"
+
+    - name: "--temperature"
+      type: "float"
+      default: 0.7
+      description: "generation temperature"
+
+    - name: "--top_p"
+      type: "float"
+      default: 1.0
+      description: "nucleus sampling parameter"
+
+    - name: "--max_tokens"
+      type: "integer"
+      default: 512
+      description: "max generation tokens per action"
+
+    - name: "--deterministic_action"
+      type: "boolean"
+      default: false
+      description: "force deterministic action decoding"
+
+    - name: "--use_public_memory"
+      type: "boolean"
+      default: true
+      description: "whether to enable shared public memory"
+
+    - name: "--memory_max_rounds"
+      type: "integer"
+      default: 50
+      description: "maximum public-memory rounds retained"
+
+    - name: "--log_dir"
+      type: "string"
+      default: "./logs"
+      description: "output directory for logs"
+
+    - name: "--save_transcript"
+      type: "boolean"
+      default: true
+      description: "whether to save full game transcript"
+
+    - name: "--save_metrics"
+      type: "boolean"
+      default: true
+      description: "whether to save evaluation metrics"
+
+    - name: "--verbose"
+      type: "boolean"
+      default: false
+      description: "verbose runtime printing"
+
+  example_cli: >
+    python run_werewolf.py --num_players 8
+    --role_config werewolf:3,seer:1,witch:1,villager:3
+    --global_seed 2026
+    --num_rounds 32
+    --fairness_test werewolf_window
+    --window_shift_per_round 1
+    --use_public_memory true
+    --save_transcript true
+    --log_dir ./logs/base_run
+
+argument_validation:
+  checks:
+    - name: "num_players_positive_check"
+      condition: "num_players > 0"
+      on_fail: "Raise ValueError: --num_players must be > 0."
+
+    - name: "num_rounds_positive_check"
+      condition: "num_rounds > 0"
+      on_fail: "Raise ValueError: --num_rounds must be > 0."
+
+    - name: "fairness_multiple_check"
+      condition: >
+        fairness_test != 'werewolf_window' or
+        (num_rounds % num_players == 0)
+      on_fail: >
+        Raise ValueError: --num_rounds must be a multiple of --num_players
+        when --fairness_test is werewolf_window.
+
+    - name: "role_sum_check"
+      condition: >
+        sum(role_config.values()) == num_players
+      on_fail: >
+        Raise ValueError: the sum of roles in --role_config must equal --num_players.
+
+agent_decision_pipeline:
+  steps:
+    - observe
+    - update_belief
+    - generate_speech
+    - vote
+    - perform_night_action_if_applicable
+
+game_state_structure:
+  fields:
+    - players
+    - roles
+    - alive_players
+    - day_number
+    - phase
+    - public_memory
+    - vote_history
+    - speech_history
+    - runtime_seed
+
+game_loop:
+  pseudocode: |
+    while not game_over:
+        derive_runtime_seed(global_seed, round_id)
+        night_phase()
+        resolve_night_deaths()
+        day_phase()
+        voting_phase()
+        resolve_day_deaths()
+        check_win_condition()
+
+belief_update_rule:
+  strategy: "heuristic_score_update"
+  description: >
+    Each agent maintains a suspicion score for every other player.
+    New observations add or subtract score increments according to
+    predefined rules, and scores are normalized into belief values.
+  update_sources:
+    discussion:
+      examples:
+        - condition: "player strongly accuses another player"
+          effect: "increase target suspicion slightly"
+        - condition: "player contradicts earlier public statements"
+          effect: "increase speaker suspicion"
+    voting:
+      examples:
+        - condition: "player votes against a later-confirmed good player"
+          effect: "increase voter suspicion"
+        - condition: "player avoids voting for a highly suspicious target"
+          effect: "increase voter suspicion slightly"
+    deaths:
+      examples:
+        - condition: "player is killed at night"
+          effect: "set killed player's wolf belief very low"
+    role_claims:
+      examples:
+        - condition: "multiple players make conflicting information claims"
+          effect: "increase suspicion on conflicting claimants"
+  score_to_belief:
+    method: "softmax"
