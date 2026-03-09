@@ -67,8 +67,6 @@ def aggregate_metrics(results, num_players: int) -> Dict:
     wolf_elim_games_by_model: Dict[str, int] = {}
     good_id_hits_by_model: Dict[str, int] = {}
     good_id_total_by_model: Dict[str, int] = {}
-    wolf_id_hits_by_model: Dict[str, int] = {}
-    wolf_id_total_by_model: Dict[str, int] = {}
 
     for result in results:
         winner = result.winner
@@ -112,8 +110,6 @@ def aggregate_metrics(results, num_players: int) -> Dict:
                 if len(predicted_good) == 5:
                     true_good = {p for p, r in role_assignment.items() if r != "werewolf"}
                     hits = sum(1 for p in predicted_good if p in true_good)
-                    wolf_id_hits_by_model[model_id] = wolf_id_hits_by_model.get(model_id, 0) + hits
-                    wolf_id_total_by_model[model_id] = wolf_id_total_by_model.get(model_id, 0) + 5
             else:
                 sorted_asc = sorted(belief.items(), key=lambda x: x[1])
                 predicted_wolves = [p for p, _ in sorted_asc[:3]]
@@ -186,12 +182,6 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         else 0
         for model in good_id_total_by_model
     }
-    wolf_id_hit_rate_by_model = {
-        model: (wolf_id_hits_by_model.get(model, 0) / wolf_id_total_by_model[model])
-        if wolf_id_total_by_model.get(model)
-        else 0
-        for model in wolf_id_total_by_model
-    }
 
     return {
         "win_rate_by_seat": seat_win_rate,
@@ -206,5 +196,4 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         "wolf_survival_days_by_model": wolf_survival_days_by_model,
         "wolf_elim_rate_by_model": wolf_elim_rate_by_model,
         "good_id_hit_rate_by_model": good_id_hit_rate_by_model,
-        "wolf_id_hit_rate_by_model": wolf_id_hit_rate_by_model,
     }
