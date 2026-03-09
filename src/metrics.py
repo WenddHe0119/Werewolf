@@ -61,6 +61,10 @@ def aggregate_metrics(results, num_players: int) -> Dict:
     wolf_games_by_model: Dict[str, int] = {}
     good_wins_by_model: Dict[str, int] = {}
     good_games_by_model: Dict[str, int] = {}
+    wolf_survival_sum_by_model: Dict[str, int] = {}
+    wolf_survival_games_by_model: Dict[str, int] = {}
+    wolf_elim_by_model: Dict[str, int] = {}
+    wolf_elim_games_by_model: Dict[str, int] = {}
     good_id_hits_by_model: Dict[str, int] = {}
     good_id_total_by_model: Dict[str, int] = {}
     wolf_id_hits_by_model: Dict[str, int] = {}
@@ -70,6 +74,7 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         winner = result.winner
         role_assignment = result.role_assignment
         player_models = getattr(result, "player_models", {}) or {}
+        final_day = int(getattr(result, "day_count", 0) or 0)
         player_ids = list(role_assignment.keys())
         final_beliefs = _final_belief_by_player(getattr(result, "belief_history", []) or [], player_ids)
         for pid, role in role_assignment.items():
@@ -84,6 +89,13 @@ def aggregate_metrics(results, num_players: int) -> Dict:
                 wolf_games_by_model[model_id] = wolf_games_by_model.get(model_id, 0) + 1
                 if winner == "wolf_team":
                     wolf_wins_by_model[model_id] = wolf_wins_by_model.get(model_id, 0) + 1
+                survived_days = int(result.survival_rounds.get(pid, 0))
+                wolf_survival_sum_by_model[model_id] = wolf_survival_sum_by_model.get(model_id, 0) + survived_days
+                wolf_survival_games_by_model[model_id] = wolf_survival_games_by_model.get(model_id, 0) + 1
+                died = survived_days <= final_day
+                if died:
+                    wolf_elim_by_model[model_id] = wolf_elim_by_model.get(model_id, 0) + 1
+                wolf_elim_games_by_model[model_id] = wolf_elim_games_by_model.get(model_id, 0) + 1
             else:
                 good_games_by_model[model_id] = good_games_by_model.get(model_id, 0) + 1
                 if winner == "good_team":
@@ -156,6 +168,18 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         model: (good_wins_by_model.get(model, 0) / good_games_by_model[model]) if good_games_by_model[model] else 0
         for model in good_games_by_model
     }
+    wolf_survival_days_by_model = {
+        model: (wolf_survival_sum_by_model.get(model, 0) / wolf_survival_games_by_model[model])
+        if wolf_survival_games_by_model[model]
+        else 0
+        for model in wolf_survival_games_by_model
+    }
+    wolf_elim_rate_by_model = {
+        model: (wolf_elim_by_model.get(model, 0) / wolf_elim_games_by_model[model])
+        if wolf_elim_games_by_model[model]
+        else 0
+        for model in wolf_elim_games_by_model
+    }
     good_id_hit_rate_by_model = {
         model: (good_id_hits_by_model.get(model, 0) / good_id_total_by_model[model])
         if good_id_total_by_model.get(model)
@@ -179,6 +203,8 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         "speech_length_by_seat": speech_avg,
         "wolf_win_rate_by_model": wolf_win_rate_by_model,
         "good_win_rate_by_model": good_win_rate_by_model,
+        "wolf_survival_days_by_model": wolf_survival_days_by_model,
+        "wolf_elim_rate_by_model": wolf_elim_rate_by_model,
         "good_id_hit_rate_by_model": good_id_hit_rate_by_model,
         "wolf_id_hit_rate_by_model": wolf_id_hit_rate_by_model,
     }
