@@ -65,6 +65,7 @@ class RoundResult:
     winner: str
     day_count: int
     runtime_seed: int
+    events: List[Dict[str, object]] = field(default_factory=list)
     role_assignment: Dict[int, str]
     survival_rounds: Dict[int, int]
     seer_checks: Dict[int, Dict[str, int]]

@@ -571,6 +571,7 @@ class WerewolfGame:
             winner=winner,
             day_count=self.public_memory.day,
             runtime_seed=self.runtime_seed,
+            events=self.events,
             role_assignment={pid: p.role for pid, p in self.players.items()},
             survival_rounds=self.survival_rounds,
             seer_checks=self.seer_checks,

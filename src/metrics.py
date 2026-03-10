@@ -65,6 +65,9 @@ def aggregate_metrics(results, num_players: int) -> Dict:
     wolf_survival_games_by_model: Dict[str, int] = {}
     wolf_elim_by_model: Dict[str, int] = {}
     wolf_elim_games_by_model: Dict[str, int] = {}
+    belief_influence_total = 0
+    belief_influence_hit = 0
+    belief_influence_by_day: Dict[int, Dict[str, int]] = {}
     good_id_hits_by_model: Dict[str, int] = {}
     good_id_total_by_model: Dict[str, int] = {}
 
@@ -75,6 +78,7 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         final_day = int(getattr(result, "day_count", 0) or 0)
         player_ids = list(role_assignment.keys())
         final_beliefs = _final_belief_by_player(getattr(result, "belief_history", []) or [], player_ids)
+        events = getattr(result, "events", []) or []
         for pid, role in role_assignment.items():
             seat_games[pid] += 1
             role_games[role] = role_games.get(role, 0) + 1
@@ -148,6 +152,58 @@ def aggregate_metrics(results, num_players: int) -> Dict:
                 if target in majority_targets:
                     vote_consistency[voter]["majority"] += 1
 
+        # belief deviation influenced by prior majority target (day >= 2)
+        belief_vote_by_day: Dict[int, Dict[int, Dict[int, float]]] = {}
+        for entry in getattr(result, "belief_history", []) or []:
+            if entry.get("action") != "vote":
+                continue
+            day = entry.get("day")
+            pid = entry.get("player")
+            belief_raw = entry.get("belief_full") or entry.get("belief") or {}
+            if not isinstance(day, int) or not isinstance(pid, int) or not isinstance(belief_raw, dict):
+                continue
+            parsed: Dict[int, float] = {}
+            for k, v in belief_raw.items():
+                try:
+                    tid = int(k)
+                except Exception:
+                    continue
+                try:
+                    parsed[tid] = float(v)
+                except Exception:
+                    continue
+            belief_vote_by_day.setdefault(day, {})[pid] = parsed
+
+        day_counts: Dict[int, Dict[int, int]] = {}
+        for e in events:
+            if e.get("type") != "speech":
+                continue
+            day = e.get("day")
+            if not isinstance(day, int) or day < 2:
+                continue
+            pid = e.get("speaker")
+            target = e.get("target")
+            if not isinstance(pid, int) or not isinstance(target, int):
+                continue
+            counts = day_counts.setdefault(day, {})
+            if counts:
+                max_c = max(counts.values())
+                majority = {t for t, c in counts.items() if c == max_c}
+                belief_map = belief_vote_by_day.get(day - 1, {}).get(pid)
+                if belief_map:
+                    if pid in belief_map:
+                        belief_map = {k: v for k, v in belief_map.items() if k != pid}
+                    if belief_map:
+                        min_val = min(belief_map.values())
+                        least_trust = {p for p, v in belief_map.items() if v == min_val}
+                        belief_influence_total += 1
+                        belief_influence_by_day.setdefault(day, {"total": 0, "hit": 0})
+                        belief_influence_by_day[day]["total"] += 1
+                        if target not in least_trust and target in majority:
+                            belief_influence_hit += 1
+                            belief_influence_by_day[day]["hit"] += 1
+            counts[target] = counts.get(target, 0) + 1
+
     seat_win_rate = {pid: (seat_wins[pid] / seat_games[pid]) if seat_games[pid] else 0 for pid in seat_wins}
     role_win_rate = {role: (role_wins.get(role, 0) / role_games[role]) if role_games[role] else 0 for role in role_games}
     avg_survival = {pid: (survival_sum[pid] / seat_games[pid]) if seat_games[pid] else 0 for pid in survival_sum}
@@ -176,6 +232,11 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         else 0
         for model in wolf_elim_games_by_model
     }
+    belief_deviation_influenced_rate = (belief_influence_hit / belief_influence_total) if belief_influence_total else 0
+    belief_deviation_influenced_rate_by_day = {
+        day: (vals["hit"] / vals["total"]) if vals["total"] else 0
+        for day, vals in belief_influence_by_day.items()
+    }
     good_id_hit_rate_by_model = {
         model: (good_id_hits_by_model.get(model, 0) / good_id_total_by_model[model])
         if good_id_total_by_model.get(model)
@@ -196,4 +257,6 @@ def aggregate_metrics(results, num_players: int) -> Dict:
         "wolf_survival_days_by_model": wolf_survival_days_by_model,
         "wolf_elim_rate_by_model": wolf_elim_rate_by_model,
         "good_id_hit_rate_by_model": good_id_hit_rate_by_model,
+        "belief_deviation_influenced_rate": belief_deviation_influenced_rate,
+        "belief_deviation_influenced_rate_by_day": belief_deviation_influenced_rate_by_day,
     }
