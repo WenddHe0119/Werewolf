@@ -1,0 +1,1586 @@
+{
+  "round_id": 4,
+  "runtime_seed": 14321802408803788223,
+  "winner": "good_team",
+  "final_day": 3,
+  "role_assignment": {
+    "1": "werewolf",
+    "2": "werewolf",
+    "3": "seer",
+    "4": "witch",
+    "5": "villager",
+    "6": "villager",
+    "7": "villager",
+    "8": "villager"
+  },
+  "team_assignment": {
+    "1": "wolf_team",
+    "2": "wolf_team",
+    "3": "good_team",
+    "4": "good_team",
+    "5": "good_team",
+    "6": "good_team",
+    "7": "good_team",
+    "8": "good_team"
+  },
+  "alive_status": {
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": true,
+    "5": true,
+    "6": false,
+    "7": false,
+    "8": false
+  },
+  "player_models": {
+    "1": {
+      "id": "P1",
+      "provider": "openai",
+      "model": "llama-4-maverick-17b-128e-instruct-fp8",
+      "api_key_env": "META_API_KEY",
+      "api_base_env": "META_API_BASE"
+    },
+    "2": {
+      "id": "P2",
+      "provider": "google",
+      "model": "gemini-2.0-flash",
+      "api_key_env": "GOOGLE_API_KEY",
+      "api_base_env": "GOOGLE_API_BASE"
+    },
+    "3": {
+      "id": "P3",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "api_key_env": "OPENAI_API_KEY",
+      "api_base_env": "OPENAI_API_BASE"
+    },
+    "4": {
+      "id": "P4",
+      "provider": "alibaba",
+      "model": "qwen-turbo",
+      "api_key_env": "Ali_API_KEY",
+      "api_base_env": "Ali_API_BASE"
+    },
+    "5": {
+      "id": "P5",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-5-all",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "api_base_env": "ANTHROPIC_API_BASE"
+    },
+    "6": {
+      "id": "P6",
+      "provider": "openai",
+      "model": "deepseek-chat",
+      "api_key_env": "DEEPSEEK_API_KEY",
+      "api_base_env": "DEEPSEEK_API_BASE"
+    },
+    "7": {
+      "id": "P7",
+      "provider": "openai",
+      "model": "doubao-1-5-lite-32k-250115",
+      "api_key_env": "SEEDDANCE_API_KEY",
+      "api_base_env": "SEEDDANCE_API_BASE"
+    },
+    "8": {
+      "id": "P8",
+      "provider": "openai",
+      "model": "glm-4-32b",
+      "api_key_env": "GLM_API_KEY",
+      "api_base_env": "GLM_API_BASE"
+    }
+  },
+  "phase_instruction": {
+    "name": "8-player werewolf round pipeline",
+    "version": "1.0",
+    "description": "Round-level execution flow for MAS-based 8-player Werewolf simulation"
+  },
+  "phase_state": {
+    "player_speech_role": {},
+    "known_player_role": {
+      "2": "werewolf",
+      "8": "good"
+    },
+    "actioned_player": {
+      "saved_player": null,
+      "poisoned_player": null
+    },
+    "player_speech": [],
+    "death_target": 8
+  },
+  "events": [
+    {
+      "type": "werewolf_discussion",
+      "speaker": 1,
+      "target": 8,
+      "reason": "speech consistency concerns"
+    },
+    {
+      "type": "werewolf_discussion",
+      "speaker": 2,
+      "target": 7,
+      "reason": "speech consistency concerns"
+    },
+    {
+      "type": "night_wolf",
+      "kill_target": 7
+    },
+    {
+      "type": "night_seer",
+      "seer": 3,
+      "target": 2,
+      "alignment": "wolf_team",
+      "reason": "speech consistency concerns"
+    },
+    {
+      "type": "night_witch",
+      "witch": 4,
+      "use_antidote": true,
+      "use_poison": false,
+      "poison_target": null,
+      "reason": "fixed order: used antidote first"
+    },
+    {
+      "type": "announce_deaths",
+      "day": 1,
+      "message": "Night deaths: none"
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 1,
+      "text": "seer | reason: P3 has the lowest trust belief among the non-P1 players, indicating a high likelihood of being a werewolf, which aligns with my role as a seer to identify and suspect werewolves | target: P3",
+      "belief": {
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.2,
+        "5": 0.2,
+        "6": 0.2,
+        "7": 0.2,
+        "8": 0.2
+      },
+      "role_view": "seer",
+      "target": 3,
+      "reason": "P3 has the lowest trust belief among the non-P1 players, indicating a high likelihood of being a werewolf, which aligns with my role as a seer to identify and suspect werewolves",
+      "vote_target": 3,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 7,
+      "text": "villager | reason: P1 claims to be a seer and points to P3 as having the lowest trust belief among non-P1 players, suggesting P3 is likely a werewolf | target: P3",
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "8": 0.14285714285714285
+      },
+      "role_view": "villager",
+      "target": 3,
+      "reason": "P1 claims to be a seer and points to P3 as having the lowest trust belief among non-P1 players, suggesting P3 is likely a werewolf",
+      "vote_target": 3,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 8,
+      "text": "villager | reason: P1 and P7 both suspect P3 based on the lowest trust belief among non-P1 players, which aligns with their claims and suggests P3 is a likely werewolf | target: P3",
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "7": 0.14285714285714285
+      },
+      "role_view": "villager",
+      "target": 3,
+      "reason": "P1 and P7 both suspect P3 based on the lowest trust belief among non-P1 players, which aligns with their claims and suggests P3 is a likely werewolf",
+      "vote_target": 3,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 3,
+      "text": "villager | reason: P1 is leading suspicion against P3 by claiming seer and using trust beliefs, which could be an attempt to direct attention away from themselves. All other players have equal trust values except P2, who is already confirmed werewolf, making P1's claim and focus on P3 suspicious | target: P1",
+      "belief": {
+        "1": 0.16666666666666666,
+        "2": 0.0,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666,
+        "8": 0.16666666666666666
+      },
+      "role_view": "villager",
+      "target": 1,
+      "reason": "P1 is leading suspicion against P3 by claiming seer and using trust beliefs, which could be an attempt to direct attention away from themselves. All other players have equal trust values except P2, who is already confirmed werewolf, making P1's claim and focus on P3 suspicious",
+      "vote_target": 1,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 4,
+      "text": "witch | reason: speech consistency concerns | target: P1",
+      "belief": {
+        "1": 0.14285714285714288,
+        "2": 0.14285714285714288,
+        "3": 0.14285714285714288,
+        "5": 0.14285714285714288,
+        "6": 0.14285714285714288,
+        "7": 0.14285714285714288,
+        "8": 0.14285714285714288
+      },
+      "role_view": "witch",
+      "target": 1,
+      "reason": "speech consistency concerns",
+      "vote_target": 1,
+      "reason_source": "fallback_llm_error",
+      "llm_error": "The read operation timed out"
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 6,
+      "text": "villager | reason: P1 claims seer but uses equal trust beliefs to single out P3, which is suspicious as all non-P1 players have identical trust values. P3 and P4 both counter-suspect P1, with P4 claiming witch and citing speech consistency concerns, making P1's early seer claim potentially fabricated to push a mislynch | target: P1",
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "7": 0.14285714285714285,
+        "8": 0.14285714285714285
+      },
+      "role_view": "villager",
+      "target": 1,
+      "reason": "P1 claims seer but uses equal trust beliefs to single out P3, which is suspicious as all non-P1 players have identical trust values. P3 and P4 both counter-suspect P1, with P4 claiming witch and citing speech consistency concerns, making P1's early seer claim potentially fabricated to push a mislynch",
+      "vote_target": 1,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 5,
+      "text": "villager | reason: P1 claims seer but falsely states P3 has the lowest trust belief when all players have equal 0.1429 values. This fabricated reasoning to push P3 is suspicious. P7 and P8 blindly follow P1's false claim, suggesting coordination. Three players (P3, P4, P6) independently counter-suspect P1, with P4 claiming witch and citing speech inconsistencies. P1's manufactured evidence points to werewolf behavior | target: P1",
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "7": 0.14285714285714285,
+        "8": 0.14285714285714285
+      },
+      "role_view": "villager",
+      "target": 1,
+      "reason": "P1 claims seer but falsely states P3 has the lowest trust belief when all players have equal 0.1429 values. This fabricated reasoning to push P3 is suspicious. P7 and P8 blindly follow P1's false claim, suggesting coordination. Three players (P3, P4, P6) independently counter-suspect P1, with P4 claiming witch and citing speech inconsistencies. P1's manufactured evidence points to werewolf behavior",
+      "vote_target": 1,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 1,
+      "speaker": 2,
+      "text": "witch | reason: P1 is suspicious due to multiple players (P3, P4, P5, P6) pointing out inconsistencies in their seer claim and fabricated evidence. As witch, I am concerned about P1's potential misdirection | target: P1",
+      "belief": {
+        "1": 0.0,
+        "3": 0.2,
+        "4": 0.1,
+        "5": 0.2,
+        "6": 0.2,
+        "7": 0.05,
+        "8": 0.25
+      },
+      "role_view": "witch",
+      "target": 1,
+      "reason": "P1 is suspicious due to multiple players (P3, P4, P5, P6) pointing out inconsistencies in their seer claim and fabricated evidence. As witch, I am concerned about P1's potential misdirection",
+      "vote_target": 1,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 1,
+      "target": 7,
+      "belief": {
+        "2": 0.0,
+        "3": 0.10526315789473685,
+        "4": 0.15789473684210525,
+        "5": 0.15789473684210525,
+        "6": 0.15789473684210525,
+        "7": 0.2105263157894737,
+        "8": 0.2105263157894737
+      }
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 7,
+      "target": 1,
+      "belief": {
+        "1": 0.01152870647913304,
+        "2": 0.16474521558681116,
+        "3": 0.16474521558681116,
+        "4": 0.16474521558681116,
+        "5": 0.16474521558681116,
+        "6": 0.16474521558681116,
+        "8": 0.16474521558681116
+      }
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 8,
+      "target": 1,
+      "belief": {
+        "1": 0.0,
+        "2": 0.16666666666666666,
+        "3": 0.16666666666666666,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666
+      }
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 3,
+      "target": 1,
+      "belief": {
+        "1": 0.11235955056179776,
+        "2": 0.0,
+        "4": 0.21348314606741572,
+        "5": 0.21348314606741572,
+        "6": 0.21348314606741572,
+        "7": 0.12359550561797752,
+        "8": 0.12359550561797752
+      }
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 4,
+      "target": 1,
+      "belief": {
+        "1": 0.012704174228675133,
+        "2": 0.18148820326678763,
+        "3": 0.11796733212341197,
+        "5": 0.18148820326678763,
+        "6": 0.18148820326678763,
+        "7": 0.14337568058076225,
+        "8": 0.18148820326678763
+      }
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 6,
+      "target": 1,
+      "belief": {
+        "1": 0.059822924144532184,
+        "2": 0.17097391720507296,
+        "3": 0.17097391720507296,
+        "4": 0.23929169657812874,
+        "5": 0.23929169657812874,
+        "7": 0.059822924144532184,
+        "8": 0.059822924144532184
+      }
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 5,
+      "target": 1,
+      "belief": {
+        "1": 0.06097560975609757,
+        "2": 0.12195121951219513,
+        "3": 0.21951219512195122,
+        "4": 0.18292682926829268,
+        "6": 0.20731707317073172,
+        "7": 0.0975609756097561,
+        "8": 0.10975609756097561
+      }
+    },
+    {
+      "type": "vote",
+      "day": 1,
+      "voter": 2,
+      "target": 3,
+      "belief": {
+        "1": 0.4444444444444445,
+        "3": 0.11111111111111112,
+        "4": 0.05555555555555556,
+        "5": 0.11111111111111112,
+        "6": 0.11111111111111112,
+        "7": 0.02777777777777778,
+        "8": 0.1388888888888889
+      }
+    },
+    {
+      "type": "resolve_day",
+      "day": 1,
+      "message": "Day elimination: P1"
+    },
+    {
+      "type": "werewolf_discussion",
+      "speaker": 2,
+      "target": 6,
+      "reason": "voting patterns appear inconsistent"
+    },
+    {
+      "type": "night_wolf",
+      "kill_target": 6
+    },
+    {
+      "type": "night_seer",
+      "seer": 3,
+      "target": 8,
+      "alignment": "good_team",
+      "reason": "voting patterns appear inconsistent"
+    },
+    {
+      "type": "night_witch",
+      "witch": 4,
+      "use_antidote": false,
+      "use_poison": true,
+      "poison_target": 3,
+      "reason": "fixed order: used poison second"
+    },
+    {
+      "type": "announce_deaths",
+      "day": 2,
+      "message": "Night deaths: P6, P3"
+    },
+    {
+      "type": "speech",
+      "day": 2,
+      "speaker": 4,
+      "text": "villager | reason: P3 has the lowest trust belief (0.0414), making them the most likely werewolf. No saved or poisoned player is known, so targeting P3 aligns with the goal of eliminating a suspected werewolf | target: P3",
+      "belief": {
+        "1": 0.010901608531349546,
+        "2": 0.19785133450725126,
+        "3": 0.041390499178916955,
+        "5": 0.19785133450725126,
+        "6": 0.19785133450725126,
+        "7": 0.1563025542607285,
+        "8": 0.19785133450725126
+      },
+      "role_view": "villager",
+      "target": 3,
+      "reason": "P3 has the lowest trust belief (0.0414), making them the most likely werewolf. No saved or poisoned player is known, so targeting P3 aligns with the goal of eliminating a suspected werewolf",
+      "vote_target": 3,
+      "reason_source": null,
+      "llm_error": "The read operation timed out"
+    },
+    {
+      "type": "speech",
+      "day": 2,
+      "speaker": 5,
+      "text": "villager | reason: P7 has the lowest trust belief among alive players at 0.0976, making them the most suspicious. P4's earlier focus on P3 (now eliminated) doesn't clear P7, who remains the statistically most likely werewolf based on current trust values | target: P7",
+      "belief": {
+        "1": 0.06097560975609757,
+        "2": 0.12195121951219513,
+        "3": 0.21951219512195122,
+        "4": 0.18292682926829268,
+        "6": 0.20731707317073172,
+        "7": 0.0975609756097561,
+        "8": 0.10975609756097561
+      },
+      "role_view": "villager",
+      "target": 7,
+      "reason": "P7 has the lowest trust belief among alive players at 0.0976, making them the most suspicious. P4's earlier focus on P3 (now eliminated) doesn't clear P7, who remains the statistically most likely werewolf based on current trust values",
+      "vote_target": 7,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 2,
+      "speaker": 8,
+      "text": "villager | reason: P5's reasoning correctly identifies P7 as the lowest trust belief among alive players (0.0976), making them statistically the most likely werewolf. P4's earlier focus on P3 (now eliminated) does not clear P7, supporting the suspicion | target: P7",
+      "belief": {
+        "1": 0.0,
+        "2": 0.16666666666666666,
+        "3": 0.16666666666666666,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666
+      },
+      "role_view": "villager",
+      "target": 7,
+      "reason": "P5's reasoning correctly identifies P7 as the lowest trust belief among alive players (0.0976), making them statistically the most likely werewolf. P4's earlier focus on P3 (now eliminated) does not clear P7, supporting the suspicion",
+      "vote_target": 7,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 2,
+      "speaker": 2,
+      "text": "witch | reason: As witch, I've been watching closely. P7 has the lowest trust belief (0.0527) and both P5 and P8 are pushing hard on them. This feels like a genuine read, so I'll support the vote | target: P7",
+      "belief": {
+        "3": 0.15782493368700268,
+        "4": 0.10534293292913983,
+        "5": 0.2104964001515726,
+        "6": 0.2104964001515726,
+        "7": 0.05267146646456992,
+        "8": 0.2631678666161425
+      },
+      "role_view": "witch",
+      "target": 7,
+      "reason": "As witch, I've been watching closely. P7 has the lowest trust belief (0.0527) and both P5 and P8 are pushing hard on them. This feels like a genuine read, so I'll support the vote",
+      "vote_target": 7,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 2,
+      "speaker": 7,
+      "text": "villager | reason: Multiple players (P5, P8, and P2 as witch) have pointed out that P7 has the lowest trust belief among the alive players. This makes P7 the most suspicious based on the current trust values and the public discussion | target: P7",
+      "belief": {
+        "1": 0.01152870647913304,
+        "2": 0.16474521558681116,
+        "3": 0.16474521558681116,
+        "4": 0.16474521558681116,
+        "5": 0.16474521558681116,
+        "6": 0.16474521558681116,
+        "8": 0.16474521558681116
+      },
+      "role_view": "villager",
+      "target": 7,
+      "reason": "Multiple players (P5, P8, and P2 as witch) have pointed out that P7 has the lowest trust belief among the alive players. This makes P7 the most suspicious based on the current trust values and the public discussion",
+      "vote_target": 7,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "vote",
+      "day": 2,
+      "voter": 4,
+      "target": 7,
+      "belief": {
+        "1": 0.012174257381861432,
+        "2": 0.24086930696360392,
+        "3": 0.012174257381861432,
+        "5": 0.24086930696360392,
+        "6": 0.24086930696360392,
+        "7": 0.012174257381861432,
+        "8": 0.24086930696360392
+      }
+    },
+    {
+      "type": "vote",
+      "day": 2,
+      "voter": 5,
+      "target": 7,
+      "belief": {
+        "2": 0.18811881188118812,
+        "4": 0.37623762376237624,
+        "7": 0.07920792079207921,
+        "8": 0.3564356435643564
+      }
+    },
+    {
+      "type": "vote",
+      "day": 2,
+      "voter": 8,
+      "target": 7,
+      "belief": {
+        "2": 0.27890245942780656,
+        "4": 0.27890245942780656,
+        "5": 0.27890245942780656,
+        "7": 0.16329262171658024
+      }
+    },
+    {
+      "type": "vote",
+      "day": 2,
+      "voter": 2,
+      "target": 7,
+      "belief": {
+        "4": 0.16669305049865446,
+        "5": 0.3332277980053823,
+        "7": 0.08342567674529049,
+        "8": 0.4166534747506728
+      }
+    },
+    {
+      "type": "vote",
+      "day": 2,
+      "voter": 7,
+      "target": 2,
+      "belief": {
+        "2": 0.25,
+        "4": 0.25,
+        "5": 0.25,
+        "8": 0.25
+      }
+    },
+    {
+      "type": "resolve_day",
+      "day": 2,
+      "message": "Day elimination: P7"
+    },
+    {
+      "type": "werewolf_discussion",
+      "speaker": 2,
+      "target": 8,
+      "reason": "voting patterns appear inconsistent"
+    },
+    {
+      "type": "night_wolf",
+      "kill_target": 8
+    },
+    {
+      "type": "night_witch",
+      "witch": 4,
+      "use_antidote": false,
+      "use_poison": false,
+      "poison_target": null,
+      "reason": "no action"
+    },
+    {
+      "type": "announce_deaths",
+      "day": 3,
+      "message": "Night deaths: P8"
+    },
+    {
+      "type": "speech",
+      "day": 3,
+      "speaker": 4,
+      "text": "witch | reason: voting patterns appear inconsistent | target: P2",
+      "belief": {
+        "1": 0.010379072500000001,
+        "2": 0.2188627825,
+        "3": 0.010379072500000001,
+        "5": 0.25,
+        "6": 0.25,
+        "7": 0.010379072500000001,
+        "8": 0.25
+      },
+      "role_view": "witch",
+      "target": 2,
+      "reason": "voting patterns appear inconsistent",
+      "vote_target": 2,
+      "reason_source": "fallback_llm_error",
+      "llm_error": "The read operation timed out"
+    },
+    {
+      "type": "speech",
+      "day": 3,
+      "speaker": 2,
+      "text": "witch | reason: P4 claimed witch and targeted me, which is suspicious given my trust belief in P4 is relatively low | target: P4",
+      "belief": {
+        "4": 0.26234507180798744,
+        "5": 0.3277591973244147,
+        "8": 0.4098957308675979
+      },
+      "role_view": "witch",
+      "target": 4,
+      "reason": "P4 claimed witch and targeted me, which is suspicious given my trust belief in P4 is relatively low",
+      "vote_target": 4,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "speech",
+      "day": 3,
+      "speaker": 5,
+      "text": "villager | reason: P2 has the lowest trust belief (0.1881) among alive players and their counter-accusation against P4 seems reactive rather than substantive, while P4's trust belief is significantly higher (0.3762) | target: P2",
+      "belief": {
+        "2": 0.18811881188118812,
+        "4": 0.37623762376237624,
+        "7": 0.07920792079207921,
+        "8": 0.3564356435643564
+      },
+      "role_view": "villager",
+      "target": 2,
+      "reason": "P2 has the lowest trust belief (0.1881) among alive players and their counter-accusation against P4 seems reactive rather than substantive, while P4's trust belief is significantly higher (0.3762)",
+      "vote_target": 2,
+      "reason_source": null,
+      "llm_error": null
+    },
+    {
+      "type": "vote",
+      "day": 3,
+      "voter": 4,
+      "target": 2,
+      "belief": {
+        "1": 0.011940373602925507,
+        "2": 0.10223021589313595,
+        "3": 0.011504278058492709,
+        "5": 0.28760695146231774,
+        "6": 0.28760695146231774,
+        "7": 0.011504278058492709,
+        "8": 0.28760695146231774
+      }
+    },
+    {
+      "type": "vote",
+      "day": 3,
+      "voter": 2,
+      "target": 5,
+      "belief": {
+        "4": 0.3333333333333333,
+        "5": 0.6666666666666666
+      }
+    },
+    {
+      "type": "vote",
+      "day": 3,
+      "voter": 5,
+      "target": 2,
+      "belief": {
+        "2": 0.2631578947368421,
+        "4": 0.736842105263158
+      }
+    },
+    {
+      "type": "resolve_day",
+      "day": 3,
+      "message": "Day elimination: P2"
+    }
+  ],
+  "vote_history": [
+    {
+      "day": 1,
+      "voter": 1,
+      "target": 7
+    },
+    {
+      "day": 1,
+      "voter": 7,
+      "target": 1
+    },
+    {
+      "day": 1,
+      "voter": 8,
+      "target": 1
+    },
+    {
+      "day": 1,
+      "voter": 3,
+      "target": 1
+    },
+    {
+      "day": 1,
+      "voter": 4,
+      "target": 1
+    },
+    {
+      "day": 1,
+      "voter": 6,
+      "target": 1
+    },
+    {
+      "day": 1,
+      "voter": 5,
+      "target": 1
+    },
+    {
+      "day": 1,
+      "voter": 2,
+      "target": 3
+    },
+    {
+      "day": 2,
+      "voter": 4,
+      "target": 7
+    },
+    {
+      "day": 2,
+      "voter": 5,
+      "target": 7
+    },
+    {
+      "day": 2,
+      "voter": 8,
+      "target": 7
+    },
+    {
+      "day": 2,
+      "voter": 2,
+      "target": 7
+    },
+    {
+      "day": 2,
+      "voter": 7,
+      "target": 2
+    },
+    {
+      "day": 3,
+      "voter": 4,
+      "target": 2
+    },
+    {
+      "day": 3,
+      "voter": 2,
+      "target": 5
+    },
+    {
+      "day": 3,
+      "voter": 5,
+      "target": 2
+    }
+  ],
+  "belief_history": [
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 1,
+      "belief": {
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.2,
+        "5": 0.2,
+        "6": 0.2,
+        "7": 0.2,
+        "8": 0.2
+      },
+      "belief_full": {
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.2,
+        "5": 0.2,
+        "6": 0.2,
+        "7": 0.2,
+        "8": 0.2
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 7,
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "8": 0.14285714285714285
+      },
+      "belief_full": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "8": 0.14285714285714285
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 8,
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "7": 0.14285714285714285
+      },
+      "belief_full": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "7": 0.14285714285714285
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 3,
+      "belief": {
+        "1": 0.16666666666666666,
+        "2": 0.0,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666,
+        "8": 0.16666666666666666
+      },
+      "belief_full": {
+        "1": 0.16666666666666666,
+        "2": 0.0,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666,
+        "8": 0.16666666666666666
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 4,
+      "belief": {
+        "1": 0.14285714285714288,
+        "2": 0.14285714285714288,
+        "3": 0.14285714285714288,
+        "5": 0.14285714285714288,
+        "6": 0.14285714285714288,
+        "7": 0.14285714285714288,
+        "8": 0.14285714285714288
+      },
+      "belief_full": {
+        "1": 0.14285714285714288,
+        "2": 0.14285714285714288,
+        "3": 0.14285714285714288,
+        "5": 0.14285714285714288,
+        "6": 0.14285714285714288,
+        "7": 0.14285714285714288,
+        "8": 0.14285714285714288
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 6,
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "7": 0.14285714285714285,
+        "8": 0.14285714285714285
+      },
+      "belief_full": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "5": 0.14285714285714285,
+        "7": 0.14285714285714285,
+        "8": 0.14285714285714285
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 5,
+      "belief": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "7": 0.14285714285714285,
+        "8": 0.14285714285714285
+      },
+      "belief_full": {
+        "1": 0.14285714285714285,
+        "2": 0.14285714285714285,
+        "3": 0.14285714285714285,
+        "4": 0.14285714285714285,
+        "6": 0.14285714285714285,
+        "7": 0.14285714285714285,
+        "8": 0.14285714285714285
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "speech",
+      "player": 2,
+      "belief": {
+        "1": 0.0,
+        "3": 0.2,
+        "4": 0.1,
+        "5": 0.2,
+        "6": 0.2,
+        "7": 0.05,
+        "8": 0.25
+      },
+      "belief_full": {
+        "1": 0.0,
+        "3": 0.2,
+        "4": 0.1,
+        "5": 0.2,
+        "6": 0.2,
+        "7": 0.05,
+        "8": 0.25
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 1,
+      "belief": {
+        "2": 0.0,
+        "3": 0.10526315789473685,
+        "4": 0.15789473684210525,
+        "5": 0.15789473684210525,
+        "6": 0.15789473684210525,
+        "7": 0.2105263157894737,
+        "8": 0.2105263157894737
+      },
+      "belief_full": {
+        "2": 0.0,
+        "3": 0.10526315789473685,
+        "4": 0.15789473684210525,
+        "5": 0.15789473684210525,
+        "6": 0.15789473684210525,
+        "7": 0.2105263157894737,
+        "8": 0.2105263157894737
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 7,
+      "belief": {
+        "1": 0.01152870647913304,
+        "2": 0.16474521558681116,
+        "3": 0.16474521558681116,
+        "4": 0.16474521558681116,
+        "5": 0.16474521558681116,
+        "6": 0.16474521558681116,
+        "8": 0.16474521558681116
+      },
+      "belief_full": {
+        "1": 0.01152870647913304,
+        "2": 0.16474521558681116,
+        "3": 0.16474521558681116,
+        "4": 0.16474521558681116,
+        "5": 0.16474521558681116,
+        "6": 0.16474521558681116,
+        "8": 0.16474521558681116
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 8,
+      "belief": {
+        "1": 0.0,
+        "2": 0.16666666666666666,
+        "3": 0.16666666666666666,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666
+      },
+      "belief_full": {
+        "1": 0.0,
+        "2": 0.16666666666666666,
+        "3": 0.16666666666666666,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 3,
+      "belief": {
+        "1": 0.11235955056179776,
+        "2": 0.0,
+        "4": 0.21348314606741572,
+        "5": 0.21348314606741572,
+        "6": 0.21348314606741572,
+        "7": 0.12359550561797752,
+        "8": 0.12359550561797752
+      },
+      "belief_full": {
+        "1": 0.11235955056179776,
+        "2": 0.0,
+        "4": 0.21348314606741572,
+        "5": 0.21348314606741572,
+        "6": 0.21348314606741572,
+        "7": 0.12359550561797752,
+        "8": 0.12359550561797752
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 4,
+      "belief": {
+        "1": 0.012704174228675133,
+        "2": 0.18148820326678763,
+        "3": 0.11796733212341197,
+        "5": 0.18148820326678763,
+        "6": 0.18148820326678763,
+        "7": 0.14337568058076225,
+        "8": 0.18148820326678763
+      },
+      "belief_full": {
+        "1": 0.012704174228675133,
+        "2": 0.18148820326678763,
+        "3": 0.11796733212341197,
+        "5": 0.18148820326678763,
+        "6": 0.18148820326678763,
+        "7": 0.14337568058076225,
+        "8": 0.18148820326678763
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 6,
+      "belief": {
+        "1": 0.059822924144532184,
+        "2": 0.17097391720507296,
+        "3": 0.17097391720507296,
+        "4": 0.23929169657812874,
+        "5": 0.23929169657812874,
+        "7": 0.059822924144532184,
+        "8": 0.059822924144532184
+      },
+      "belief_full": {
+        "1": 0.059822924144532184,
+        "2": 0.17097391720507296,
+        "3": 0.17097391720507296,
+        "4": 0.23929169657812874,
+        "5": 0.23929169657812874,
+        "7": 0.059822924144532184,
+        "8": 0.059822924144532184
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 5,
+      "belief": {
+        "1": 0.06097560975609757,
+        "2": 0.12195121951219513,
+        "3": 0.21951219512195122,
+        "4": 0.18292682926829268,
+        "6": 0.20731707317073172,
+        "7": 0.0975609756097561,
+        "8": 0.10975609756097561
+      },
+      "belief_full": {
+        "1": 0.06097560975609757,
+        "2": 0.12195121951219513,
+        "3": 0.21951219512195122,
+        "4": 0.18292682926829268,
+        "6": 0.20731707317073172,
+        "7": 0.0975609756097561,
+        "8": 0.10975609756097561
+      }
+    },
+    {
+      "day": 1,
+      "phase": "day",
+      "action": "vote",
+      "player": 2,
+      "belief": {
+        "1": 0.4444444444444445,
+        "3": 0.11111111111111112,
+        "4": 0.05555555555555556,
+        "5": 0.11111111111111112,
+        "6": 0.11111111111111112,
+        "7": 0.02777777777777778,
+        "8": 0.1388888888888889
+      },
+      "belief_full": {
+        "1": 0.4444444444444445,
+        "3": 0.11111111111111112,
+        "4": 0.05555555555555556,
+        "5": 0.11111111111111112,
+        "6": 0.11111111111111112,
+        "7": 0.02777777777777778,
+        "8": 0.1388888888888889
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "speech",
+      "player": 4,
+      "belief": {
+        "1": 0.010901608531349546,
+        "2": 0.19785133450725126,
+        "3": 0.041390499178916955,
+        "5": 0.19785133450725126,
+        "6": 0.19785133450725126,
+        "7": 0.1563025542607285,
+        "8": 0.19785133450725126
+      },
+      "belief_full": {
+        "1": 0.010901608531349546,
+        "2": 0.19785133450725126,
+        "3": 0.041390499178916955,
+        "5": 0.19785133450725126,
+        "6": 0.19785133450725126,
+        "7": 0.1563025542607285,
+        "8": 0.19785133450725126
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "speech",
+      "player": 5,
+      "belief": {
+        "1": 0.06097560975609757,
+        "2": 0.12195121951219513,
+        "3": 0.21951219512195122,
+        "4": 0.18292682926829268,
+        "6": 0.20731707317073172,
+        "7": 0.0975609756097561,
+        "8": 0.10975609756097561
+      },
+      "belief_full": {
+        "1": 0.06097560975609757,
+        "2": 0.12195121951219513,
+        "3": 0.21951219512195122,
+        "4": 0.18292682926829268,
+        "6": 0.20731707317073172,
+        "7": 0.0975609756097561,
+        "8": 0.10975609756097561
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "speech",
+      "player": 8,
+      "belief": {
+        "1": 0.0,
+        "2": 0.16666666666666666,
+        "3": 0.16666666666666666,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666
+      },
+      "belief_full": {
+        "1": 0.0,
+        "2": 0.16666666666666666,
+        "3": 0.16666666666666666,
+        "4": 0.16666666666666666,
+        "5": 0.16666666666666666,
+        "6": 0.16666666666666666,
+        "7": 0.16666666666666666
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "speech",
+      "player": 2,
+      "belief": {
+        "3": 0.15782493368700268,
+        "4": 0.10534293292913983,
+        "5": 0.2104964001515726,
+        "6": 0.2104964001515726,
+        "7": 0.05267146646456992,
+        "8": 0.2631678666161425
+      },
+      "belief_full": {
+        "1": 0.4444444444444445,
+        "3": 0.15782493368700268,
+        "4": 0.10534293292913983,
+        "5": 0.2104964001515726,
+        "6": 0.2104964001515726,
+        "7": 0.05267146646456992,
+        "8": 0.2631678666161425
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "speech",
+      "player": 7,
+      "belief": {
+        "1": 0.01152870647913304,
+        "2": 0.16474521558681116,
+        "3": 0.16474521558681116,
+        "4": 0.16474521558681116,
+        "5": 0.16474521558681116,
+        "6": 0.16474521558681116,
+        "8": 0.16474521558681116
+      },
+      "belief_full": {
+        "1": 0.01152870647913304,
+        "2": 0.16474521558681116,
+        "3": 0.16474521558681116,
+        "4": 0.16474521558681116,
+        "5": 0.16474521558681116,
+        "6": 0.16474521558681116,
+        "8": 0.16474521558681116
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "vote",
+      "player": 4,
+      "belief": {
+        "1": 0.012174257381861432,
+        "2": 0.24086930696360392,
+        "3": 0.012174257381861432,
+        "5": 0.24086930696360392,
+        "6": 0.24086930696360392,
+        "7": 0.012174257381861432,
+        "8": 0.24086930696360392
+      },
+      "belief_full": {
+        "1": 0.012174257381861432,
+        "2": 0.24086930696360392,
+        "3": 0.012174257381861432,
+        "5": 0.24086930696360392,
+        "6": 0.24086930696360392,
+        "7": 0.012174257381861432,
+        "8": 0.24086930696360392
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "vote",
+      "player": 5,
+      "belief": {
+        "2": 0.18811881188118812,
+        "4": 0.37623762376237624,
+        "7": 0.07920792079207921,
+        "8": 0.3564356435643564
+      },
+      "belief_full": {
+        "1": 0.06097560975609757,
+        "2": 0.18811881188118812,
+        "3": 0.21951219512195122,
+        "4": 0.37623762376237624,
+        "6": 0.20731707317073172,
+        "7": 0.07920792079207921,
+        "8": 0.3564356435643564
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "vote",
+      "player": 8,
+      "belief": {
+        "2": 0.27890245942780656,
+        "4": 0.27890245942780656,
+        "5": 0.27890245942780656,
+        "7": 0.16329262171658024
+      },
+      "belief_full": {
+        "1": 0.0,
+        "2": 0.27890245942780656,
+        "3": 0.16666666666666666,
+        "4": 0.27890245942780656,
+        "5": 0.27890245942780656,
+        "6": 0.16666666666666666,
+        "7": 0.16329262171658024
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "vote",
+      "player": 2,
+      "belief": {
+        "4": 0.16669305049865446,
+        "5": 0.3332277980053823,
+        "7": 0.08342567674529049,
+        "8": 0.4166534747506728
+      },
+      "belief_full": {
+        "1": 0.4444444444444445,
+        "3": 0.15782493368700268,
+        "4": 0.16669305049865446,
+        "5": 0.3332277980053823,
+        "6": 0.2104964001515726,
+        "7": 0.08342567674529049,
+        "8": 0.4166534747506728
+      }
+    },
+    {
+      "day": 2,
+      "phase": "day",
+      "action": "vote",
+      "player": 7,
+      "belief": {
+        "2": 0.25,
+        "4": 0.25,
+        "5": 0.25,
+        "8": 0.25
+      },
+      "belief_full": {
+        "1": 0.01152870647913304,
+        "2": 0.25,
+        "3": 0.16474521558681116,
+        "4": 0.25,
+        "5": 0.25,
+        "6": 0.16474521558681116,
+        "8": 0.25
+      }
+    },
+    {
+      "day": 3,
+      "phase": "day",
+      "action": "speech",
+      "player": 4,
+      "belief": {
+        "1": 0.010379072500000001,
+        "2": 0.2188627825,
+        "3": 0.010379072500000001,
+        "5": 0.25,
+        "6": 0.25,
+        "7": 0.010379072500000001,
+        "8": 0.25
+      },
+      "belief_full": {
+        "1": 0.010379072500000001,
+        "2": 0.2188627825,
+        "3": 0.010379072500000001,
+        "5": 0.25,
+        "6": 0.25,
+        "7": 0.010379072500000001,
+        "8": 0.25
+      }
+    },
+    {
+      "day": 3,
+      "phase": "day",
+      "action": "speech",
+      "player": 2,
+      "belief": {
+        "4": 0.26234507180798744,
+        "5": 0.3277591973244147,
+        "8": 0.4098957308675979
+      },
+      "belief_full": {
+        "1": 0.4444444444444445,
+        "3": 0.15782493368700268,
+        "4": 0.26234507180798744,
+        "5": 0.3277591973244147,
+        "6": 0.2104964001515726,
+        "7": 0.08342567674529049,
+        "8": 0.4098957308675979
+      }
+    },
+    {
+      "day": 3,
+      "phase": "day",
+      "action": "speech",
+      "player": 5,
+      "belief": {
+        "2": 0.18811881188118812,
+        "4": 0.37623762376237624,
+        "7": 0.07920792079207921,
+        "8": 0.3564356435643564
+      },
+      "belief_full": {
+        "1": 0.06097560975609757,
+        "2": 0.18811881188118812,
+        "3": 0.21951219512195122,
+        "4": 0.37623762376237624,
+        "6": 0.20731707317073172,
+        "7": 0.07920792079207921,
+        "8": 0.3564356435643564
+      }
+    },
+    {
+      "day": 3,
+      "phase": "day",
+      "action": "vote",
+      "player": 4,
+      "belief": {
+        "1": 0.011940373602925507,
+        "2": 0.10223021589313595,
+        "3": 0.011504278058492709,
+        "5": 0.28760695146231774,
+        "6": 0.28760695146231774,
+        "7": 0.011504278058492709,
+        "8": 0.28760695146231774
+      },
+      "belief_full": {
+        "1": 0.011940373602925507,
+        "2": 0.10223021589313595,
+        "3": 0.011504278058492709,
+        "5": 0.28760695146231774,
+        "6": 0.28760695146231774,
+        "7": 0.011504278058492709,
+        "8": 0.28760695146231774
+      }
+    },
+    {
+      "day": 3,
+      "phase": "day",
+      "action": "vote",
+      "player": 2,
+      "belief": {
+        "4": 0.3333333333333333,
+        "5": 0.6666666666666666
+      },
+      "belief_full": {
+        "1": 0.4444444444444445,
+        "3": 0.15782493368700268,
+        "4": 0.3333333333333333,
+        "5": 0.6666666666666666,
+        "6": 0.2104964001515726,
+        "7": 0.08342567674529049,
+        "8": 0.4098957308675979
+      }
+    },
+    {
+      "day": 3,
+      "phase": "day",
+      "action": "vote",
+      "player": 5,
+      "belief": {
+        "2": 0.2631578947368421,
+        "4": 0.736842105263158
+      },
+      "belief_full": {
+        "1": 0.06097560975609757,
+        "2": 0.2631578947368421,
+        "3": 0.21951219512195122,
+        "4": 0.736842105263158,
+        "6": 0.20731707317073172,
+        "7": 0.07920792079207921,
+        "8": 0.3564356435643564
+      }
+    }
+  ]
+}
